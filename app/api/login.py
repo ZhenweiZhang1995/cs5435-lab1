@@ -14,6 +14,9 @@ from app.models.session import (
     get_session_by_username,
     logged_in,
 )
+from app.models.breaches import get_breaches
+from app.util.hash import hash_pbkdf2,hash_sha256
+
 
 
 @get('/login')
@@ -26,6 +29,9 @@ def do_login(db):
     password = request.forms.get('password')
     error = None
     user = get_user(db, username)
+    plaintext_breaches, hashed_breaches, salted_breaches = get_breaches(db, username)
+    breached = is_plaintext_breached(
+        password, plaintext_breaches) or is_hashed_breached(password, hashed_breaches) or is_salted_breached(password, salted_breaches)
     print(user)
     if (request.forms.get("login")):
         if user is None:
@@ -40,6 +46,9 @@ def do_login(db):
         if user is not None:
             response.status = 401
             error = "{} is already taken.".format(username)
+        elif breached:
+            response.status = 401
+            error = "Password found in a data breach, please use another password."
         else:
             create_user(db, username, password)
     else:
@@ -61,4 +70,26 @@ def do_logout(db, session):
     response.delete_cookie("session")
     return redirect("/login")
 
+
+def is_plaintext_breached(password, plaintext_breaches):
+    for plaintext_breach in plaintext_breaches:
+        if plaintext_breach == password:
+            return True
+    return False
+
+
+def is_hashed_breached(password, hashed_breaches):
+    for hashed_breach in hashed_breaches:
+        hashed_pwd = hash_sha256(password)
+        if hashed_breach.hashed_password == hashed_pwd:
+            return True
+    return False
+
+
+def is_salted_breached(password, salted_breaches):
+    for salted_breach in salted_breaches:
+        salted_pwd = hash_pbkdf2(password,salted_breach.salt)
+        if salted_breach.salted_password == salted_pwd:
+            return True
+    return False
 
