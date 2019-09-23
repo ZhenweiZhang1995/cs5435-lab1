@@ -33,6 +33,7 @@ def do_login(db):
     breached = is_plaintext_breached(
         password, plaintext_breaches) or is_hashed_breached(password, hashed_breaches) or is_salted_breached(password, salted_breaches)
     print(user)
+    print(get_breaches(db, username))
     if (request.forms.get("login")):
         if user is None:
             response.status = 401
@@ -73,7 +74,7 @@ def do_logout(db, session):
 
 def is_plaintext_breached(password, plaintext_breaches):
     for plaintext_breach in plaintext_breaches:
-        if plaintext_breach == password:
+        if plaintext_breach.password == password:
             return True
     return False
 

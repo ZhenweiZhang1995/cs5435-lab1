@@ -4,7 +4,7 @@ from app.models.user import create_user, get_user
 from app.models.breaches import (
     create_plaintext_breach_entry,
     create_salted_breach_entry,
-    create_hashed_breach_entry,
+    create_hashed_breach_entry
 )
 
 PLAINTEXT_BREACH_PATH = "app/scripts/breaches/plaintext_breach.csv"
