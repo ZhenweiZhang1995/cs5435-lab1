@@ -32,13 +32,12 @@ def do_login(db):
     plaintext_breaches, hashed_breaches, salted_breaches = get_breaches(db, username)
     breached = is_plaintext_breached(
         password, plaintext_breaches) or is_hashed_breached(password, hashed_breaches) or is_salted_breached(password, salted_breaches)
-    print(user)
-    print(get_breaches(db, username))
+    salted = hash_pbkdf2(password,user.salt)
     if (request.forms.get("login")):
         if user is None:
             response.status = 401
             error = "{} is not registered.".format(username)
-        elif user.password != password:
+        elif user.salted_password != salted:
             response.status = 401
             error = "Wrong password for {}.".format(username)
         else:
